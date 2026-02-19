@@ -140,7 +140,7 @@ if st.session_state.race_started:
         for i in range(4):
             fig.add_shape(type="rect",
                 x0=i - 0.48, x1=i + 0.48, y0=-10, y1=GOAL_DISTANCE + 5,
-                fillcolor="#388e3c" if i % 2 == 0 else="#43a047", # 芝生の濃淡
+                fillcolor="#388e3c" if i % 2 == 0 else "#43a047", # ★ここを修正しました！
                 opacity=0.8, layer="below", line_width=0
             )
         
@@ -172,8 +172,8 @@ if st.session_state.race_started:
                 showgrid=True, gridcolor="rgba(255,255,255,0.2)", zeroline=False, fixedrange=True
             ),
             margin=dict(l=10, r=10, t=10, b=10),
-            plot_bgcolor="#2e7d32", # 全体の背景も濃い緑に
-            paper_bgcolor="#0e1117", # ダークテーマ風
+            plot_bgcolor="#2e7d32", 
+            paper_bgcolor="#0e1117", 
             hovermode=False
         )
 
@@ -214,7 +214,7 @@ if st.session_state.race_started:
                 unsafe_allow_html=True
             )
             
-    st.write("") # スペース
+    st.write("") 
     if st.button("🔄 もう一度レースをする", type="primary", use_container_width=True):
         st.session_state.race_started = False
         st.rerun()
