@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 import random
-import pandas as pd
 import plotly.graph_objects as go
 
 # ページ設定
@@ -53,6 +52,7 @@ if st.session_state.race_started:
     finished_count = 0
     current_rank = 1
     race_running = True
+    frame_count = 0 # ★コマ送りのカウント用変数（エラー回避用）
 
     # --- レースループ開始 ---
     while race_running:
@@ -117,7 +117,7 @@ if st.session_state.race_started:
         fig.add_hline(y=GOAL_DISTANCE, line_width=4, line_dash="dash", line_color="gold", annotation_text="🏁 GOAL", annotation_font=dict(size=20, color="gold"))
         fig.add_hline(y=0, line_width=2, line_color="black", annotation_text="START", annotation_position="bottom right")
 
-        # 各馬の描画（マーカーを消して、巨大なテキストとしてアイコンを配置）
+        # 各馬の描画
         for horse in horses_data:
             # アイコンの描画（超特大サイズ）
             fig.add_trace(go.Scatter(
@@ -125,7 +125,7 @@ if st.session_state.race_started:
                 y=[horse["pos"]],
                 mode='text',
                 text=horse["icon"],
-                textfont=dict(size=70), # 馬の絵文字を大きく！
+                textfont=dict(size=70), 
                 showlegend=False,
                 hoverinfo="none"
             ))
@@ -134,10 +134,10 @@ if st.session_state.race_started:
             rank_text = f"<br><b>🏆 {horse['rank']}位</b>" if horse['rank'] else ""
             fig.add_trace(go.Scatter(
                 x=[horse["lane"]],
-                y=[horse["pos"] - 6], # アイコンの少し下に配置
+                y=[horse["pos"] - 6], 
                 mode='text',
                 text=f"<b>{horse['name']}</b>{rank_text}",
-                textfont=dict(size=14, color=horse["color"]), # 名前は馬のテーマカラーで
+                textfont=dict(size=14, color=horse["color"]), 
                 showlegend=False,
                 hoverinfo="none"
             ))
@@ -148,7 +148,7 @@ if st.session_state.race_started:
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-0.5, 3.5]),
             yaxis=dict(
                 title="コース",
-                range=[-15, GOAL_DISTANCE + 10], # 下に名前が入るよう余白を調整
+                range=[-15, GOAL_DISTANCE + 10], 
                 showgrid=True, gridcolor="lightgray", zeroline=False, fixedrange=True
             ),
             margin=dict(l=10, r=10, t=30, b=10),
@@ -156,8 +156,15 @@ if st.session_state.race_started:
             hovermode=False
         )
 
-        # 3. 画面更新
-        chart_placeholder.plotly_chart(fig, use_container_width=True, config={'staticPlot': True})
+        # 3. 画面更新 (★ここで key を指定してエラーを回避)
+        chart_placeholder.plotly_chart(
+            fig, 
+            use_container_width=True, 
+            config={'staticPlot': True},
+            key=f"race_frame_{frame_count}" 
+        )
+
+        frame_count += 1 # ★カウントを増やす
 
         # 終了判定
         if finished_count == 4:
