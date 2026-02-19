@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="ドタバタ縦スクロール杯", page_icon="🏇", layout="wide")
 
 st.title("🏇 ドタバタ縦スクロール杯")
-st.write("ゴール前は魔物が棲んでいる…！？ 予測不能な大波乱レース！")
+st.write("だいたい30秒で決着！ 大逆転ありの白熱レース！")
 
 # --- レースの設定 ---
 GOAL_DISTANCE = 100
@@ -52,37 +52,37 @@ if st.session_state.race_started:
     finished_count = 0
     current_rank = 1
     race_running = True
-    frame_count = 0 # ★コマ送りのカウント用変数（エラー回避用）
+    frame_count = 0 
 
     # --- レースループ開始 ---
     while race_running:
         
-        # 現在のトップの馬の位置を取得（焦らし演出のトリガー用）
+        # 現在のトップの馬の位置を取得
         active_horses = [h for h in horses_data if h["rank"] is None]
         if active_horses:
             top_pos = max(h["pos"] for h in active_horses)
         else:
             top_pos = GOAL_DISTANCE
 
-        # 状況に応じた「焦らし」モードの設定
+        # ★修正ポイント：30秒前後で決着し、逆転が起きやすい確率調整
         if top_pos < 40:
-            situation = "🟢 【序盤】 各馬、順調な滑り出しです！"
+            situation = "🟢 【序盤】 各馬、様子を見ながらの展開！"
             sleep_time = 0.1
-            # 序盤は普通に進む
-            move_choices = [-1, 0, 1, 2, 3, 5, 8]
-            move_weights = [5,  10, 20, 30, 20, 10, 5]
+            # 序盤：着実に少しずつ進む
+            move_choices = [-1, 0, 1, 2, 3]
+            move_weights = [5,  15, 40, 30, 10]
         elif top_pos < 85:
-            situation = "🟡 【中盤】 抜け出すのはどの馬だ！？"
+            situation = "🟡 【中盤】 仕掛けどころ！一気に順位が入れ替わるか！？"
             sleep_time = 0.1
-            # 中盤は動きが激しくなる（大ダッシュか大後退か）
-            move_choices = [-3, -1, 0, 2, 4, 7, 10]
-            move_weights = [10, 10, 10, 20, 20, 20, 10]
+            # 中盤：大きく下がる(-4)こともあれば、猛ダッシュ(+8)して大逆転することもある
+            move_choices = [-4, -1, 0, 2, 4, 8]
+            move_weights = [10, 15, 15, 30, 20, 10]
         else:
-            situation = "🔥 【終盤】 デッドヒート！ゴール前のプレッシャーで足が重い！！"
-            sleep_time = 0.25 # コマ送りを少し遅くして「焦らし」を強調
-            # 終盤（ゴール直前）は極端に進みにくく、たまに大きく後退する（焦らし！）
-            move_choices = [-5, -2, -1, 0, 0, 1, 2]
-            move_weights = [5,  15, 20, 30, 15, 10, 5]
+            situation = "🔥 【終盤】 ゴール前の激しいデッドヒート！"
+            sleep_time = 0.1 
+            # 終盤：進みは遅いが、確実に前には進む（たまに+5の鋭い差し足で逆転勝利！）
+            move_choices = [-2, 0, 1, 2, 3, 5]
+            move_weights = [15, 25, 30, 15, 10, 5]
 
         status_text.markdown(f"### {situation}")
 
@@ -102,7 +102,7 @@ if st.session_state.race_started:
                     current_rank += 1
                     finished_count += 1
 
-        # 2. Plotlyグラフによる視覚化（馬のアイコンを主役に）
+        # 2. Plotlyグラフによる視覚化
         fig = go.Figure()
 
         # 背景レーン
@@ -119,7 +119,6 @@ if st.session_state.race_started:
 
         # 各馬の描画
         for horse in horses_data:
-            # アイコンの描画（超特大サイズ）
             fig.add_trace(go.Scatter(
                 x=[horse["lane"]],
                 y=[horse["pos"]],
@@ -130,7 +129,6 @@ if st.session_state.race_started:
                 hoverinfo="none"
             ))
             
-            # 馬の名前と順位の描画（アイコンの少し下に追従させる）
             rank_text = f"<br><b>🏆 {horse['rank']}位</b>" if horse['rank'] else ""
             fig.add_trace(go.Scatter(
                 x=[horse["lane"]],
@@ -156,7 +154,7 @@ if st.session_state.race_started:
             hovermode=False
         )
 
-        # 3. 画面更新 (★ここで key を指定してエラーを回避)
+        # 3. 画面更新
         chart_placeholder.plotly_chart(
             fig, 
             use_container_width=True, 
@@ -164,7 +162,7 @@ if st.session_state.race_started:
             key=f"race_frame_{frame_count}" 
         )
 
-        frame_count += 1 # ★カウントを増やす
+        frame_count += 1
 
         # 終了判定
         if finished_count == 4:
@@ -174,7 +172,7 @@ if st.session_state.race_started:
             time.sleep(sleep_time)
 
     # --- レース終了後の結果表示 ---
-    st.success("🎉 全馬ゴール！！ 大波乱のレースが決着しました！")
+    st.success("🎉 全馬ゴール！！ 白熱のレースが決着しました！")
     
     sorted_horses = sorted(horses_data, key=lambda x: x["rank"])
     medals = ["🥇 1位", "🥈 2位", "🥉 3位", "🏅 4位"]
